@@ -10,4 +10,8 @@ class CodalServerApplicationTests {
     void contextLoads() {
     }
 
+    @Test
+    void test(){
+
+    }
 }
