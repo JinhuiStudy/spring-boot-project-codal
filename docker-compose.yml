@@ -1,0 +1,99 @@
+version: "3.2"
+services:
+  database:
+    container_name: database
+    image: mariadb
+    networks:
+      - database
+    volumes:
+      - ./docker/mariadb/etc/mysql/conf.d:/etc/mysql/conf.d:ro
+      - ./docker/mariadb/var/lib/mysql:/var/lib/mysql
+      - ./docker/mariadb/var/log/maria:/var/log/maria
+    environment:
+      - TZ=Asia/Seoul
+      - MYSQL_DATABASE=root
+      - MYSQL_ROOT_PASSWORD=mariadb
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_DATABASE=codal
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    ports:
+      - "3306:3306"
+    restart: always
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+    ports:
+      - 27017:27017
+    networks:
+      - mongo
+    volumes:
+      - ./docker/mongodb/data/db:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongodb
+      - MONGO_INITDB_DATABASE=codal
+
+  redis-docker:
+    image: redis:latest
+    command: redis-server --port 6379
+    container_name: "docker-redis"
+    restart: always
+    networks:
+      - redis
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    volumes:
+      - ./docker/redis/data/db:/data
+    ports:
+      - 6379:6379
+
+  jenkins:
+    container_name: 'jenkins'
+    image: "jenkins/jenkins:latest"
+    restart: always
+    ports:
+      - 8080:8080
+      - 5000:5000
+      - 50000:50000
+    networks:
+      - jenkins
+    volumes:
+      - ./docker/jenkins:/var/jenkins_home
+    environment:
+      TZ: "Asia/Seoul"
+#  /var/jenkins_home/secrets/initialAdminPassword
+
+#  application:
+#    hostname: ec2-52-78-161-209.ap-northeast-2.compute.amazonaws.com
+#    platform: linux/amd64
+#    image: parkjinhui/crawling-service:1.0
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:mariadb://database:3306/point?useUnicode=true
+#      SPRING_DATASOURCE_USERNAME: root
+#      SPRING_DATASOURCE_PASSWORD: mariadb
+#    ports:
+#      - "8090:8080"
+#    depends_on:
+#      - database
+#      - redis-docker
+#      - jenkins
+#      - mongodb
+#    networks:
+#      - database
+#      - mongo
+#      - redis
+#      - jenkins
+#    restart: always
+
+networks:
+  database:
+    driver: bridge
+  mongo:
+    driver: bridge
+  redis:
+    driver: bridge
+  jenkins:
+    driver: bridge
